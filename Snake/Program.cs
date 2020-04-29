@@ -23,6 +23,33 @@ namespace Snake
 
     class Program
     {
+        static public Position MakeFood(Random randomNumbersGenerator, Queue<Position> snakeElements, List<Position> obstacles, int randomNumber)
+        {
+            Position food;
+            do
+            {
+                food = new Position(randomNumbersGenerator.Next(0, Console.WindowHeight - 1),
+                    randomNumbersGenerator.Next(0, Console.WindowWidth));
+            }
+            while (snakeElements.Contains(food) || obstacles.Contains(food));
+            switch(randomNumber)
+            {
+                case 1:
+                    Console.SetCursorPosition(food.col, food.row);
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.Write("$");
+                    break;
+
+                default:
+                    Console.SetCursorPosition(food.col, food.row);
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.Write("@");
+                    break;
+            }
+
+            return food;
+        }
+
         static void PlayMusic()
         {
             System.Media.SoundPlayer bgm = new System.Media.SoundPlayer();
@@ -40,10 +67,10 @@ namespace Snake
             //means the last time the snakeElement ate
             int lastFoodTime = 0;
             //the time till the food spawns again
-            int foodDissapearTime = 16000;
+            int foodDissapearTime = 30000;
             int userPoints = 0;
             int negativePoints = 0;
-
+            
             //array storing the direction of snake movement
             Position[] directions = new Position[]
             {
@@ -61,6 +88,7 @@ namespace Snake
             Console.BufferHeight = Console.WindowHeight;
             //store the last time the snake ate to time since the console started
             lastFoodTime = Environment.TickCount;
+            int randomNumber = 0;
 
             //create Position objects and stores them in obstacles
             //These represent the obstacles
@@ -96,18 +124,8 @@ namespace Snake
             }
             //creates the food position that is randomly generated as long as the snake has not eaten the food
             //or the food was generated in place of an obstacle
-            Position food;
-            do
-            {
-                food = new Position(randomNumbersGenerator.Next(0, Console.WindowHeight - 1),
-                    randomNumbersGenerator.Next(0, Console.WindowWidth));
-            }
-            while (snakeElements.Contains(food) || obstacles.Contains(food));
-
-            //Draws the food on the console
-            Console.SetCursorPosition(food.col, food.row);
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.Write("@");
+            
+            Position food = MakeFood(randomNumbersGenerator, snakeElements, obstacles, randomNumber);
 
             //Draws the snake on the console
             foreach (Position position in snakeElements)
@@ -120,6 +138,7 @@ namespace Snake
             //main game loop
             while (true)
             {
+                int rng = randomNumbersGenerator.Next(8);
                 negativePoints++;
                 //checks if user can input values through keyboard     
                 if (Console.KeyAvailable)
@@ -220,18 +239,13 @@ namespace Snake
                 {
                     Console.Beep();
                     // spawns new food at a random position if the snake ate the food
-                    do
-                    {
-                        //prevents the food spawaning on the user points text
-                        food = new Position(randomNumbersGenerator.Next(0, Console.WindowHeight - 1),
-                            randomNumbersGenerator.Next(0, Console.WindowWidth));
+                    if(rng == 1)
+                        {
+                        userPoints +=150;
                     }
-                    while (snakeElements.Contains(food) || obstacles.Contains(food));
-                    lastFoodTime = Environment.TickCount;
-                    Console.SetCursorPosition(food.col, food.row);
-                    Console.ForegroundColor = ConsoleColor.Yellow;
-                    Console.Write("@");
-                    sleepTime--;
+                  
+                   food =  MakeFood(randomNumbersGenerator,snakeElements,obstacles, rng);
+                   sleepTime--;
 
                     //spawns obstacles and ensures the obstacle do not spawn on food
 
@@ -268,18 +282,10 @@ namespace Snake
                     negativePoints = negativePoints + 10;
                     Console.SetCursorPosition(food.col, food.row);
                     Console.Write(" ");
-                    do
-                    {
-                        food = new Position(randomNumbersGenerator.Next(0, Console.WindowHeight - 1),
-                            randomNumbersGenerator.Next(0, Console.WindowWidth));
-                    }
-                    while (snakeElements.Contains(food) || obstacles.Contains(food));
+                    
+                    food = MakeFood(randomNumbersGenerator,snakeElements,obstacles, rng);
                     lastFoodTime = Environment.TickCount;
                 }
-                Console.SetCursorPosition(food.col, food.row);
-                Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.Write("@");
-
                 sleepTime -= 0.01;
 
                 Thread.Sleep((int)sleepTime);
